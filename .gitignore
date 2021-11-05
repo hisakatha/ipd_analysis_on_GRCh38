@@ -1,0 +1,16 @@
+*
+!.gitignore
+!README
+!README.md
+!LICENSE
+
+!shi2016_P6C4
+!shi2016_P6C4/**/
+!analysis
+!analysis/**/
+
+!*.sh
+!*.xml
+!*.R
+!Makefile
+!*.makefile

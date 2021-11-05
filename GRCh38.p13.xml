@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pbds:ReferenceSet CreatedAt="2021-10-04T15:37:09" MetaType="PacBio.DataSet.ReferenceSet" Name="pacbio_dataset_referenceset-211004_063607264" Tags="" TimeStampedName="pacbio_dataset_referenceset-211004_063607264" UniqueId="3a9f0248-ad03-6779-ee18-2a4aafc89bb4" Version="3.0.1" xmlns:pbbase="http://pacificbiosciences.com/PacBioBaseDataModel.xsd" xmlns:pbds="http://pacificbiosciences.com/PacBioDatasets.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://pacificbiosciences.com/PacBioDataModel.xsd">
+	<pbbase:ExternalResources>
+		<pbbase:ExternalResource MetaType="PacBio.ContigFile.ContigFastaFile" ResourceId="/glusterfs/hisakatha/ensembl_GRCh38.p13/Homo_sapiens.GRCh38.dna_sm.toplevel.fa" TimeStampedName="pacbio_contigfile_contigfastafile-211004_063607262" UniqueId="50195b9f-7328-4990-9738-4efaa14d7f69">
+			<pbbase:FileIndices>
+				<pbbase:FileIndex MetaType="PacBio.Index.SamIndex" ResourceId="/glusterfs/hisakatha/ensembl_GRCh38.p13/Homo_sapiens.GRCh38.dna_sm.toplevel.fa.fai" TimeStampedName="pacbio_index_samindex-211004_063607263" UniqueId="53fdfb2d-3b57-487e-a29a-8badeebcd448"/>
+			</pbbase:FileIndices>
+		</pbbase:ExternalResource>
+	</pbbase:ExternalResources>
+	<pbds:DataSetMetadata>
+		<pbds:TotalLength>63147197748</pbds:TotalLength>
+		<pbds:NumRecords>639</pbds:NumRecords>
+		<pbds:Organism/>
+		<pbds:Ploidy/>
+	</pbds:DataSetMetadata>
+</pbds:ReferenceSet>
