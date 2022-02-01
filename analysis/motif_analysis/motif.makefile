@@ -8,21 +8,24 @@ endif
 ### Variables you have to set
 REF := /glusterfs/hisakatha/ensembl_GRCh38.p13/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa
 FAI := $(REF:=.fai)
+collect_regional_kinetics := ~/collect_regional_kinetics/target/release/collect_regional_kinetics
 ###
 
 occ_prefix := motif_occ
 
 motif_ipds := motif_ipd.shi2016_P6C4.csv
-motif_wga_ipdratios := motif_ipdratio.shi2016_P6C4.csv
+#motif_wga_ipdratios := motif_ipdratio.shi2016_P6C4.csv
 motif_kinetics_csv := $(motif_ipds)
 motif_kinetics_csv_celegans := $(motif_kinetics_csv:.csv=.c_elegans.csv)
-motif_kinetics_csv_celegans += $(motif_wga_ipdratios:.csv=.c_elegans.csv)
+#motif_kinetics_csv_celegans += $(motif_wga_ipdratios:.csv=.c_elegans.csv)
 motif_kinetics_csv_ecoli := $(motif_kinetics_csv_celegans:.c_elegans.csv=.e_coli.csv)
-motif_modelPrediction := motif_modelPrediction.shi2016_P6C4.csv
-motif_modelPrediction_celegans := $(motif_modelPrediction:.csv=.c_elegans.csv)
-motif_modelPrediction_ecoli := $(motif_modelPrediction:.csv=.e_coli.csv)
-motif_summary_input := $(motif_kinetics_csv_celegans) $(motif_kinetics_csv_ecoli) $(motif_modelPrediction_celegans) $(motif_modelPrediction_ecoli)
+#motif_modelPrediction := motif_modelPrediction.shi2016_P6C4.csv
+#motif_modelPrediction_celegans := $(motif_modelPrediction:.csv=.c_elegans.csv)
+#motif_modelPrediction_ecoli := $(motif_modelPrediction:.csv=.e_coli.csv)
+#motif_summary_input := $(motif_kinetics_csv_celegans) $(motif_kinetics_csv_ecoli) $(motif_modelPrediction_celegans) $(motif_modelPrediction_ecoli)
+motif_summary_input := $(motif_kinetics_csv)
 motif_summary_target := $(motif_summary_input:.csv=.summary.csv)
+motif_summary_target2 := $(motif_summary_input:.csv=.summary2.csv)
 motif_kinetics_pdf := plot_motif_kinetics.pdf
 motif_kinetics_stderr_pdf := plot_motif_kinetics.stderr.pdf
 motif_kinetics_stderr_widey_pdf := plot_motif_kinetics.stderr.wide_y.pdf
@@ -39,7 +42,7 @@ cor_pdf_celegans_ecoli_subset1_positive_strand := plot_kinetics_correlation.cele
 #target += $(motif_kinetics_csv_celegans) $(cor_pdf_celegans)
 #target += $(motif_modelPrediction) $(motif_modelPrediction_celegans)
 #target += $(motif_kinetics_csv_ecoli) $(motif_modelPrediction_ecoli) $(cor_pdf_celegans_ecoli) $(cor_pdf_celegans_ecoli_subset1) $(cor_pdf_celegans_ecoli_subset1_positive_strand)
-#target += $(motif_summary_target)
+target += $(motif_summary_input) $(motif_summary_target) $(motif_summary_target2)
 all: $$(target)
 
 .DELETE_ON_ERROR:
@@ -86,17 +89,8 @@ $(merged_occ): %.merged_occ: %
 
 target += $(merged_occ)
 
-# These lines require a lot of RAM
-$(motif_ipds): get_motif_ipd.R.log
-	touch $@
-get_motif_ipd.R.log: $(occ_prefix).deep_kinetics_region.shi2016_P6C4.bed.merged.sorted.slop20.bed.fa.bed.merged_occ
-	Rscript ../get_motif_ipd.v2.R $(PATTERN) &> $@ && touch $@
-$(motif_wga_ipdratios): get_motif_wga_ipdratio.R.log
-	touch $@
-get_motif_wga_ipdratio.R.log: $(occ_prefix).deep_kinetics_region.shi2016_P6C4.bed.merged.sorted.slop20.bed.fa.bed.merged_occ
-	Rscript ../get_motif_wga_ipdratio.R $(PATTERN) &> $@ && touch $@
-$(motif_ipdratios): get_motif_ipdratio.R.log
-	touch $@
+$(motif_ipds): ../../../shi2016_P6C4/output/tasks/kinetics_tools.tasks.gather_kinetics_h5-1/file.h5 $(occ_prefix).deep_kinetics_region.shi2016_P6C4.bed.merged.sorted.slop20.bed.fa.bed.merged_occ
+	$(collect_regional_kinetics) --kinetics-hdf5 $< --occ $(word 2,$^) --occ-width $(shell printf '%s' $(PATTERN) | wc -c) --extend 20 -o $@ && touch $@
 
 $(motif_kinetics_csv_celegans): %.c_elegans.csv: %.csv
 	sample=$$(echo $< | sed -E "s/motif[_0-9a-zA-Z]+\.([_0-9a-zA-Z]+)\.csv/\1/"); \
@@ -107,7 +101,10 @@ $(motif_kinetics_csv_ecoli): %.e_coli.csv: %.csv
 	Rscript ../extract_ecoli_data.R $< $(occ_prefix).deep_kinetics_region.$${sample}.bed*.slop20.bed.fa.bed.merged_occ $@
 
 $(motif_summary_target): %.summary.csv: %.csv
-	Rscript ../summarize_motif_kinetics.R $< $@
+	../summarize_motif_kinetics.py $< $@
+
+$(motif_summary_target2): %.summary2.csv: %.csv
+	../summarize_motif_kinetics2.py $< $@
 
 $(motif_kinetics_pdf): $(motif_kinetics_csv)
 	Rscript ../plot_motif_kinetics.R $(PATTERN) && touch $@
@@ -148,3 +145,14 @@ $(count_occ_simple): $(merged_occ)
 	../count_occ_simple_per_motif.sh > $@
 
 target += $(count_occ_simple)
+
+cor_pdf_subset2_3sample := plot_kinetics_correlation.subset2_3sample.pdf
+$(cor_pdf_subset2_3sample): $(motif_summary_target2)
+	Rscript ../plot_kinetics_correlation.subset2_3sample.R
+cor_pdf_subset2_3sample_upstream := plot_kinetics_correlation.subset2_3sample_upstream.pdf
+$(cor_pdf_subset2_3sample_upstream): $(motif_summary_target2)
+	Rscript ../plot_kinetics_correlation.subset2_3sample_upstream.R
+cor_pdf_subset2_3sample_both_streams := plot_kinetics_correlation.subset2_3sample_both_streams.pdf
+$(cor_pdf_subset2_3sample_both_streams): $(motif_summary_target2)
+	Rscript ../plot_kinetics_correlation.subset2_3sample_both_streams.R
+target += $(cor_pdf_subset2_3sample) $(cor_pdf_subset2_3sample_upstream) $(cor_pdf_subset2_3sample_both_streams)

@@ -7,6 +7,8 @@ all: $$(targets)
 DSLOP := 20
 FA := /glusterfs/hisakatha/ensembl_GRCh38.p13/Homo_sapiens.GRCh38.dna_sm.primary_assembly.fa
 FAI := $(FA:=.fai)
+# https://github.com/hisakatha/collect_ipd_per_kmer
+COLLECT_IPD_PER_KMER := ../../../svr_ipd/collect_ipd_per_kmer/collect_ipd
 
 fst_p6 := load_and_save.shi2016_P6C4.R.done
 $(fst_p6):
@@ -60,3 +62,12 @@ $(MOD_FULL_MERGED): %.merged: %
 	bedtools sort -i $< -faidx $(FAI) | bedtools merge -s -c 3,6,7 -o distinct,mean,distinct > $@
 
 targets += $(MOD_FULL_FA) $(MOD_FULL_MERGED)
+
+monomer_ipd_stats.shi2016_P6C4.csv: ../shi2016_P6C4/output/tasks/kinetics_tools.tasks.gather_kinetics_h5-1/file.h5
+	$(COLLECT_IPD_PER_KMER) -k 1 -l 0 -t 25 -c ACGTN -o $@ $^
+
+targets += monomer_ipd_stats.shi2016_P6C4.csv
+
+#monomer_ipd_stats2.shi2016_P6C4.csv: ../shi2016_P6C4/output/tasks/kinetics_tools.tasks.gather_kinetics_h5-1/file.h5
+#	$(COLLECT_IPD_PER_KMER) -k 1 -l 10 -t 25 -c ACGTN -o $@ $^
+#targets += monomer_ipd_stats2.shi2016_P6C4.csv
